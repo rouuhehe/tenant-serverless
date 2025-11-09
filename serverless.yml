@@ -1,0 +1,67 @@
+org: yaritzalopez
+service: tenant-serverless
+
+provider:
+  name: aws
+  runtime: python3.13
+  memorySize: 1024
+  timeout: 30
+  iam:
+    role: arn:aws:iam::635391287019:role/LabRole
+  environment:
+    TABLE_NAME: ${sls:stage}-t_tenant
+
+functions:
+  createTenant:
+    handler: createTenant.lambda_handler
+    events:
+      - http:
+          path: /tenant/create
+          method: post
+          cors: true
+
+  getTenant:
+    handler: getTenant.lambda_handler
+    events:
+      - http:
+          path: /tenant/{tenant_id}
+          method: get
+          cors: true
+
+  listTenants:
+    handler: listTenants.lambda_handler
+    events:
+      - http:
+          path: /tenant/
+          method: get
+          cors: true
+
+  updateTenant:
+    handler: updateTenant.lambda_handler
+    events:
+      - http:
+          path: /tenant/update
+          method: put
+          cors: true
+
+  deleteTenant:
+    handler: deleteTenant.lambda_handler
+    events:
+      - http:
+          path: /tenant/delete
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    TablaTenant:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TABLE_NAME}
+        AttributeDefinitions:
+          - AttributeName: tenant_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: tenant_id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
